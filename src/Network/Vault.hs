@@ -1,5 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
-
+-----------------------------------------------------------------------------
+-- |
+-- Copyright   :  (C) 2017 Owain Lewis
+-- License     :  BSD-style (see the file LICENSE)
+--
+-- Maintainer  :  Owain Lewis <owain@owainlewis.com>
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- A Haskell interface for working with Hashicorp Vault
+--
+----------------------------------------------------------------------------
 module Network.Vault where
 
 import qualified Data.ByteString.Lazy as LBS

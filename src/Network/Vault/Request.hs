@@ -1,5 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+-----------------------------------------------------------------------------
+-- |
+-- Copyright   :  (C) 2017 Owain Lewis
+-- License     :  BSD-style (see the file LICENSE)
+--
+-- Maintainer  :  Owain Lewis <owain@owainlewis.com>
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- This module defines the basic HTTP request plubming
+----------------------------------------------------------------------------
 module Network.Vault.Request where
 
 import Network.HTTP.Client
