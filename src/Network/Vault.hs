@@ -13,23 +13,22 @@
 ----------------------------------------------------------------------------
 module Network.Vault where
 
-import qualified Data.ByteString.Lazy as LBS
+import Network.HTTP.Client (Manager, newManager, defaultManagerSettings)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Data.List(isPrefixOf)
 
-data ApiVersion = V1 deriving ( Eq )
-
-instance Show ApiVersion where
-    show (V1) = "v1"
+type VaultToken = String
 
 data VaultConfig = VaultConfig {
-    endpoint :: String
-  , version :: ApiVersion
-} deriving ( Eq, Show )
+    vaultEndpoint :: String
+  , vaultToken :: VaultToken
+  , vaultHTTPManager :: Manager
+}
 
-data VaultResponse a = Success a
-                     | Errors [String]
-                     deriving ( Show )
----------------
-
-localConfig = VaultConfig { endpoint = "http://127.0.0.1:8200"
-                          , version = V1
-                          }
+mkDefaultVaultConfig :: String -> VaultToken -> IO VaultConfig
+mkDefaultVaultConfig endpoint token = do
+    let ioManager = if "https" `isPrefixOf` "https://foo.com"
+          then newManager tlsManagerSettings
+          else newManager defaultManagerSettings
+    manager <- ioManager
+    pure $ VaultConfig endpoint token manager

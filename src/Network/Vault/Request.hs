@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   :  (C) 2017 Owain Lewis
@@ -13,33 +12,70 @@
 ----------------------------------------------------------------------------
 module Network.Vault.Request where
 
+-- Remove this
+import Control.Exception
+--
+
+import Control.Exception (throwIO)
 import Network.HTTP.Client
 import Network.HTTP.Types.Status (statusCode)
+import Network.HTTP.Types.Method
+import Network.HTTP.Types.Header
+import Data.ByteString.Lazy as LBS
+import Data.Maybe(fromMaybe)
+import Data.Semigroup((<>))
 
-import Data.Aeson
-import GHC.Generics
+import qualified Data.Aeson as Aeson
 
-data InitRequest = InitRequest {
-    secretShares :: Int
-  , secretThreshold :: Int
-} deriving (Generic)
+data VaultConfiguration = VaultConfiguration {
+    vaultEndpoint :: String
+} deriving ( Eq, Show )
 
-instance ToJSON InitRequest where
-     toJSON = genericToJSON $ aesonPrefix snakeCase
-instance FromJSON InitRequest where
-   parseJSON = genericParseJSON $ aesonPrefix snakeCase
+data VaultException
+    = JSONDecodeException String
+    deriving (Show, Eq)
 
---main :: IO ()
-main = do
-    manager <- newManager defaultManagerSettings
-    initialRequest <- parseRequest "http://127.0.0.1:8200/v1/sys/init"
-    let request = initialRequest {
-            method = "GET"
---          , requestBody = RequestBodyLBS $ encode requestObject
---          , requestHeaders = [("foo", "bar")]
-          }
-    response <- httpLbs request manager
-    putStrLn $ "The status code was: " ++ (show $ statusCode $ responseStatus response)
-    print $ responseBody response
+instance Exception VaultException
 
+defaultHeaders = [ ("Content-Type", "application/json") ]
 
+buildFullRequestPath :: VaultConfiguration -> String -> String
+buildFullRequestPath vaultConfiguration requestPath =
+    (vaultEndpoint vaultConfiguration) ++ "/v1" ++ requestPath
+
+vaultRequest
+  :: Aeson.ToJSON a =>
+     Manager
+     -> VaultConfiguration
+     -> Method
+     -> String
+     -> Maybe a
+     -> [Header]
+     -> IO ByteString
+vaultRequest manager vaultConfiguration rMethod rPath rBody rHeaders = do
+    initialRequest <-
+        parseRequest (buildFullRequestPath vaultConfiguration rPath)
+    let reqBody = fromMaybe LBS.empty (Aeson.encode <$> rBody)
+        req = initialRequest
+            { method = rMethod
+            , requestBody = RequestBodyLBS reqBody
+            , requestHeaders = rHeaders
+            }
+    response <- httpLbs req manager
+    pure (responseBody response)
+
+vaultRequestJSON
+  :: (Aeson.ToJSON a, Aeson.FromJSON b) =>
+     Manager
+     -> VaultConfiguration
+     -> Method
+     -> String
+     -> Maybe a
+     -> [Header]
+     -> IO b
+vaultRequestJSON manager vaultConfiguration rMethod rPath rBody rHeaders = do
+    responseBody <-
+        vaultRequest manager vaultConfiguration rMethod rPath rBody rHeaders
+    case Aeson.eitherDecode responseBody of
+        Left err -> throwIO $ JSONDecodeException err
+        Right x -> pure x
