@@ -1,3 +1,14 @@
+---------------------------------------------------------------------------
+-- |
+-- Copyright   :  (C) 2017 Owain Lewis
+-- License     :  BSD-style (see the file LICENSE)
+--
+-- Maintainer  :  Owain Lewis <owain@owainlewis.com>
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- Type conversion logic for snake case JSON etc
+--------------------------------------------------------------------------
 module Network.Vault.Internal.Json
   ( vaultJSONOpts
   ) where
