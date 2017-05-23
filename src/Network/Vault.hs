@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   :  (C) 2017 Owain Lewis
@@ -13,22 +14,26 @@
 ----------------------------------------------------------------------------
 module Network.Vault where
 
-import Network.HTTP.Client (Manager, newManager, defaultManagerSettings)
+import Data.List (isPrefixOf)
+import Network.HTTP.Client
+       (Manager, newManager, defaultManagerSettings)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Data.List(isPrefixOf)
 
-type VaultToken = String
+newtype VaultAuthToken = VaultAuthToken
+  { token :: String
+  } deriving (Show)
 
-data VaultConfig = VaultConfig {
-    vaultEndpoint :: String
-  , vaultToken :: VaultToken
+data VaultConfig = VaultConfig
+  { vaultEndpoint :: String
+  , vaultToken :: VaultAuthToken
   , vaultHTTPManager :: Manager
-}
+  }
 
-mkDefaultVaultConfig :: String -> VaultToken -> IO VaultConfig
+mkDefaultVaultConfig :: String -> VaultAuthToken -> IO VaultConfig
 mkDefaultVaultConfig endpoint token = do
-    let ioManager = if "https" `isPrefixOf` "https://foo.com"
+  let ioManager =
+        if "https" `isPrefixOf` "https://foo.com"
           then newManager tlsManagerSettings
           else newManager defaultManagerSettings
-    manager <- ioManager
-    pure $ VaultConfig endpoint token manager
+  manager <- ioManager
+  pure $ VaultConfig endpoint token manager
