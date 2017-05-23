@@ -20,15 +20,15 @@ import Network.Vault.Internal.Json (vaultJSONOpts)
 
 data Init = Init
     -- Specifies the number of shares to split the master key into.
-  { initSecretShares :: Int
+  { secretShares :: Int
     -- Specifies the number of shares required to reconstruct the master key.
     -- This must be less than or equal secret_shares.
     -- If using Vault HSM with auto-unsealing, this value must be the same as secret_shares.
-  , initSecretThreshold :: Int
+  , secretThreshold :: Int
     -- Specifies an array of PGP public keys used to encrypt the output unseal keys.
     -- Ordering is preserved. The keys must be base64-encoded from their original binary representation.
     -- The size of this array must be the same as secret_shares.
-  , initPgpKeys :: Maybe [String]
+  , pgpKeys :: Maybe [String]
   } deriving (Show, Generic)
 
 instance ToJSON Init where

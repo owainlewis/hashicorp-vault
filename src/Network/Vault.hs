@@ -26,9 +26,11 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types.Header
 import Network.HTTP.Types.Method
-import Network.Vault.Request (vaultRequestJSON)
+import Network.Vault.Request (vaultRequestJSON, vaultRequest, VaultResponse(..))
 
 import Network.Vault.Types
+
+import qualified Data.ByteString.Lazy as LBS
 
 newtype VaultAuthToken = VaultAuthToken
   { token :: ByteString
@@ -47,26 +49,33 @@ data VaultConfig = VaultConfig
 mkDefaultVaultConfig :: String -> IO VaultConfig
 mkDefaultVaultConfig endpoint = do
   let ioManager =
-        if "https" `isPrefixOf` "https://foo.com"
+        if "https" `isPrefixOf` endpoint
           then newManager tlsManagerSettings
           else newManager defaultManagerSettings
   manager <- ioManager
   pure $ VaultConfig endpoint manager
 
 vaultConfigRequest
-  :: (ToJSON a, FromJSON b)
-  => VaultConfig -> Method -> String -> Maybe a -> [Header] -> IO b
+  :: (ToJSON a)
+  => VaultConfig -> Method -> String -> Maybe a -> [Header] -> IO (VaultResponse LBS.ByteString)
 vaultConfigRequest config =
   let (VaultConfig endpoint handler) = config
-  in vaultRequestJSON handler endpoint
+  in vaultRequest handler endpoint
 
-vaultConfigRequestWithToken
-  :: (ToJSON a, FromJSON b)
-  => VaultConfig -> VaultAuthToken -> Method -> String -> Maybe a -> t -> IO b
-vaultConfigRequestWithToken (VaultConfig endpoint handler) vaultAuthToken rMethod rPath rBody rHeaders =
-  vaultRequestJSON handler endpoint rMethod rPath rBody headers
-  where
-    headers = [("X-Vault-Token", token vaultAuthToken)]
+-- vaultConfigRequestWithToken
+--   :: (ToJSON a, FromJSON b)
+--   => VaultConfig -> VaultAuthToken -> Method -> String -> Maybe a -> [Header] -> IO b
+-- vaultConfigRequestWithToken (VaultConfig endpoint handler) vaultAuthToken rMethod rPath rBody rHeaders =
+--   vaultRequestJSON handler endpoint rMethod rPath rBody headers
+--   where
+--     headers = [("X-Vault-Token", token vaultAuthToken)] ++ rHeaders
 
 ---------------------------------------------------
-vaultInit init = init
+
+exampleInit = Init 1 1 Nothing
+
+--vaultInit config init = vaultConfigRequest config "PUT" "/" (Just init) []
+
+xample init = do
+  config <- mkDefaultVaultConfig "http://localhost:8200"
+  vaultConfigRequest config "PUT" "/sys/init" (Just init) []
