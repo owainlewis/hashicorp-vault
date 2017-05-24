@@ -26,7 +26,8 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types.Header
 import Network.HTTP.Types.Method
-import Network.Vault.Request (vaultRequestJSON, vaultRequest, VaultResponse(..))
+import Network.Vault.Request
+       (vaultRequestJSON, vaultRequest, VaultResponse(..))
 
 import Network.Vault.Types
 
@@ -57,25 +58,31 @@ mkDefaultVaultConfig endpoint = do
 
 vaultConfigRequest
   :: (ToJSON a)
-  => VaultConfig -> Method -> String -> Maybe a -> [Header] -> IO (VaultResponse LBS.ByteString)
-vaultConfigRequest config =
-  let (VaultConfig endpoint handler) = config
-  in vaultRequest handler endpoint
+  => VaultConfig
+  -> Method
+  -> String
+  -> Maybe a
+  -> [Header]
+  -> IO (VaultResponse LBS.ByteString)
+vaultConfigRequest (VaultConfig endpoint handler) = vaultRequest handler endpoint
 
--- vaultConfigRequestWithToken
---   :: (ToJSON a, FromJSON b)
---   => VaultConfig -> VaultAuthToken -> Method -> String -> Maybe a -> [Header] -> IO b
--- vaultConfigRequestWithToken (VaultConfig endpoint handler) vaultAuthToken rMethod rPath rBody rHeaders =
---   vaultRequestJSON handler endpoint rMethod rPath rBody headers
---   where
---     headers = [("X-Vault-Token", token vaultAuthToken)] ++ rHeaders
-
+vaultConfigRequestWithToken
+  :: ToJSON a =>
+     VaultConfig
+     -> VaultAuthToken
+     -> Method
+     -> String
+     -> Maybe a
+     -> [Header]
+     -> IO (VaultResponse LBS.ByteString)
+vaultConfigRequestWithToken config vaultAuthToken rMethod rPath rBody rHeaders =
+  vaultConfigRequest config rMethod rPath rBody headers
+  where
+    headers = [("X-Vault-Token", token vaultAuthToken)] ++ rHeaders
 ---------------------------------------------------
-
 exampleInit = Init 1 1 Nothing
 
 --vaultInit config init = vaultConfigRequest config "PUT" "/" (Just init) []
-
 xample init = do
   config <- mkDefaultVaultConfig "http://localhost:8200"
   vaultConfigRequest config "PUT" "/sys/init" (Just init) []

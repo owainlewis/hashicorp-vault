@@ -10,7 +10,7 @@
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- This module defines the basic HTTP request plubming
+-- This module defines the core HTTP types dispatched to Vault
 ---------------------------------------------------------------------------
 module Network.Vault.Types where
 
@@ -37,4 +37,8 @@ instance ToJSON Init where
 instance FromJSON Init where
   parseJSON = genericParseJSON vaultJSONOpts
 
-example = encode $ Init 10 20 (Just ["foo"])
+initReq :: Int -> Int -> Init
+initReq secretShares secretThreshold =
+  Init secretShares secretThreshold Nothing
+
+example = encode $ initReq 1 2
