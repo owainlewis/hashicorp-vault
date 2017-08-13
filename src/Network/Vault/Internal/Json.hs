@@ -27,3 +27,5 @@ snakeCase [] = []
 snakeCase (x:xs)
   | isUpper x = '_' : toLower x : snakeCase xs
   | otherwise = x : snakeCase xs
+
+x = map (+1)

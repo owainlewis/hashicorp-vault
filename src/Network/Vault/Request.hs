@@ -90,6 +90,9 @@ vaultRequest manager vaultEndpoint rMethod rPath rBody rHeaders = do
              JSONDecodeException
                "Unexpected API response from Vault. Could not decode"
 
+-- | vaultRequestJSON allows a user to post in a type as the request body.
+--   The body type must derive a ToJSON instance and the response you want must
+--   derive a FromJSON instance
 vaultRequestJSON
   :: (ToJSON a, FromJSON b)
   => Manager

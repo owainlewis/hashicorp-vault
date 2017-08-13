@@ -80,9 +80,14 @@ vaultConfigRequestWithToken config vaultAuthToken rMethod rPath rBody rHeaders =
   where
     headers = [("X-Vault-Token", token vaultAuthToken)] ++ rHeaders
 ---------------------------------------------------
-exampleInit = Init 1 1 Nothing
 
---vaultInit config init = vaultConfigRequest config "PUT" "/" (Just init) []
-xample init = do
+vaultInit :: Init -> IO (VaultResponse LBS.ByteString)
+vaultInit init = do
   config <- mkDefaultVaultConfig "http://localhost:8200"
   vaultConfigRequest config "PUT" "/sys/init" (Just init) []
+
+createSecret vaultAuthToken k secret = do
+  config <- mkDefaultVaultConfig "http://localhost:8200"
+  vaultConfigRequestWithToken config vaultAuthToken "POST" ("/secrets/foo") (Just secret) []
+
+sample = createSecret (VaultAuthToken "18516117-2a36-f165-d40d-58b87ba8278e") "foo" (VaultSecret { value = "bar" })

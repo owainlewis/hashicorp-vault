@@ -12,7 +12,10 @@
 --
 -- This module defines the core HTTP types dispatched to Vault
 ---------------------------------------------------------------------------
-module Network.Vault.Types where
+module Network.Vault.Types
+  ( Init(..)
+  , VaultSecret(..)
+  ) where
 
 import Data.Aeson
 import GHC.Generics
@@ -29,7 +32,7 @@ data Init = Init
     -- Ordering is preserved. The keys must be base64-encoded from their original binary representation.
     -- The size of this array must be the same as secret_shares.
   , pgpKeys :: Maybe [String]
-  } deriving (Show, Generic)
+  } deriving (Eq, Show, Generic)
 
 instance ToJSON Init where
   toJSON = genericToJSON vaultJSONOpts
@@ -37,8 +40,12 @@ instance ToJSON Init where
 instance FromJSON Init where
   parseJSON = genericParseJSON vaultJSONOpts
 
-initReq :: Int -> Int -> Init
-initReq secretShares secretThreshold =
-  Init secretShares secretThreshold Nothing
+data VaultSecret = VaultSecret {
+  value :: String
+} deriving ( Eq, Show, Generic )
 
-example = encode $ initReq 1 2
+instance ToJSON VaultSecret where
+  toJSON = genericToJSON vaultJSONOpts
+
+instance FromJSON VaultSecret where
+  parseJSON = genericParseJSON vaultJSONOpts
